@@ -19,8 +19,14 @@ await mongoClient.connect().then( () => {
 const participants = db.collection("participants");
 const messages = db.collection("messages");
 
+let userSchema = joi.string().required();
+let messageSchema = joi.object({
+    to: joi.string().min(1).required(),
+    text: joi.string().min(1).required(),
+    type: joi.string().valid("message", "private_message").required()
+});
+
 app.post("/participants", async (req, res) => {
-    let userSchema = joi.string().required();
     try{
         const validation = userSchema.validate(req.body.name);
         if (validation.error){
@@ -58,7 +64,30 @@ app.get("/participants", async (req, res) => {
     }
 });
 
-// app.post("/messages");
+app.post("/messages", async (req, res) => {
+    const {to, text, type} = req.body;
+    const from = req.headers.user;
+    const validation = messageSchema.validate(req.body);
+    //headersCheck
+    try{
+        if(validation.error){
+            res.sendStatus(422);
+        };
+        if(!validation.error){
+            const message = {
+                from,
+                to,
+                text,
+                type,
+                time: dayjs().format('HH:MM:ss')
+            };
+            await messages.insertOne(message);
+            res.sendStatus(201);
+        }
+    } catch(err){
+        res.send(err)
+    };
+});
 
 // app.get("/messages");
 
