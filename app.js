@@ -32,13 +32,14 @@ app.post("/participants", async (req, res) => {
                 await participants.insertOne({
                     name: req.body.name
                 });
-                await messages.insertOne({
+                const message = {
                     from: req.body.name,
                     to: "todos",
                     text: "entra na sala...",
                     type: "status",
                     time: dayjs().format('HH:MM:ss')
-                });
+                };
+                await messages.insertOne({message});
                 res.sendStatus(201)
             }
             if(checkUser){
@@ -48,7 +49,14 @@ app.post("/participants", async (req, res) => {
     }catch(e){console.log(e)}
 });
 
-// app.get("/participants");
+app.get("/participants", async (req, res) => {
+    try{
+        const participantsList = await participants.find({}).toArray();
+        res.status(200).send(participantsList)
+    } catch (err) {
+        res.status(500).send(err)
+    }
+});
 
 // app.post("/messages");
 
