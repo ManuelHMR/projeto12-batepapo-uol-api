@@ -94,7 +94,7 @@ app.get("/messages", async (req, res) => {
     const limit = req.query.limit ? parseInt(req.query.limit) : 100;
     try{
         const messagesArr = await messages
-        .find({})
+        .find({$or: [{ to: 'Todos' }, { from: req.headers.user }, { to: req.headers.user }, {type: 'message'}]})
         .sort({ _id: -1 })
         .limit(limit)
         .toArray();
