@@ -118,3 +118,22 @@ app.post("/status", async (req, res) => {
         res.send(err);
     }
 });
+
+
+async function deleteInativeUsers() {
+    const now = Date.now();
+    const usersArr = await participants.find({}).toArray();
+    const inativeUsers = usersArr.filter( user => now - user.lastStatus >= 10000);
+    inativeUsers.forEach(element => {
+        participants.deleteOne({name: element.name})
+        messages.insertOne({
+            from: element.name,
+            to: 'Todos',
+            text: 'sai da sala',
+            type: 'status',
+            time: dayjs().format('HH:MM:ss')
+         })    
+    })
+}
+
+setInterval(deleteInativeUsers, 15000);
