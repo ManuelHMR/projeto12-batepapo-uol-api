@@ -36,7 +36,8 @@ app.post("/participants", async (req, res) => {
             const checkUser = await participants.findOne({name: req.body.name});
             if(!checkUser){
                 await participants.insertOne({
-                    name: req.body.name
+                    name: req.body.name,
+                    lastStatus: dayjs().format('HH:MM:ss')
                 });
                 const message = {
                     from: req.body.name,
@@ -81,7 +82,7 @@ app.post("/messages", async (req, res) => {
                 type,
                 time: dayjs().format('HH:MM:ss')
             }
-            await messages.insertOne({message});
+            await messages.insertOne(message);
             res.sendStatus(201);
         }
     } catch(err){
@@ -98,4 +99,12 @@ app.get("/messages", async (req, res) => {
     };
 });
 
-// app.post("/status");
+app.post("/status", async (req, res) => {
+    try{
+
+        await participants.updateOne({name: req.headers.user}, {$set: {lastStatus: Date.now()}});
+        res.sendStatus(200);
+    } catch (err) {
+        res.send(err);
+    }
+});
