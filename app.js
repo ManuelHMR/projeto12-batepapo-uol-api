@@ -45,7 +45,7 @@ app.post("/participants", async (req, res) => {
                     type: "status",
                     time: dayjs().format('HH:MM:ss')
                 };
-                await messages.insertOne({message});
+                await messages.insertOne(message);
                 res.sendStatus(201)
             }
             if(checkUser){
@@ -80,8 +80,8 @@ app.post("/messages", async (req, res) => {
                 text,
                 type,
                 time: dayjs().format('HH:MM:ss')
-            };
-            await messages.insertOne(message);
+            }
+            await messages.insertOne({message});
             res.sendStatus(201);
         }
     } catch(err){
@@ -89,6 +89,13 @@ app.post("/messages", async (req, res) => {
     };
 });
 
-// app.get("/messages");
+app.get("/messages", async (req, res) => {
+    try{
+        const messagesArr = await messages.find({}).toArray();
+        res.send(messagesArr);
+    } catch(err){
+        res.send(err);
+    };
+});
 
 // app.post("/status");
