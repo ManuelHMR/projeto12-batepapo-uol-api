@@ -91,9 +91,14 @@ app.post("/messages", async (req, res) => {
 });
 
 app.get("/messages", async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit) : 100;
     try{
-        const messagesArr = await messages.find({}).toArray();
-        res.send(messagesArr);
+        const messagesArr = await messages
+        .find({})
+        .sort({ _id: -1 })
+        .limit(limit)
+        .toArray();
+        res.send(messagesArr.reverse());
     } catch(err){
         res.send(err);
     };
