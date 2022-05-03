@@ -19,8 +19,8 @@ await mongoClient.connect().then( () => {
 const participants = db.collection("participants");
 const messages = db.collection("messages");
 
-let userSchema = joi.string().required();
-let messageSchema = joi.object({
+const userSchema = joi.string().required();
+const messageSchema = joi.object({
     to: joi.string().required(),
     text: joi.string().required(),
     type: joi.valid("message", "private_message").required()
@@ -152,5 +152,37 @@ app.delete('/messages/:id', async (req, res) => {
         res.status(200);
     } catch (err) {
         res.status(500).send(err);
+    }
+});
+
+app.put("/messages/:id", async (req, res) => {
+    try{
+        const user = await participants.findOne({name: req.headers.user})
+        const message = {
+            to: req.body.to,
+            text: req.body.text,
+            type: req.body.type
+        }
+        const validation = messageSchema.validate(message) 
+        if(validation.error || !user){
+            res.sendStatus(422)
+        }
+        else{
+            const findMessage = await messages.findOne({ _id: ObjectId(req.params.id) });
+            if (!findMessage) {
+                res.status(404);
+                return;
+            }
+            if(findMessage.from !== req.headers.user){
+                res.status(401);
+                return;
+            }
+            else{
+                await messages.updateOne({ _id: ObjectId(req.params.id) }, { $set: { text: req.body.text} });
+                res.sendStatus(200);
+            }
+        }
+    } catch (err){
+        res.send(err)
     }
 });
