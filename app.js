@@ -119,7 +119,6 @@ app.post("/status", async (req, res) => {
     }
 });
 
-
 async function deleteInativeUsers() {
     const now = Date.now();
     const usersArr = await participants.find({}).toArray();
@@ -137,3 +136,21 @@ async function deleteInativeUsers() {
 }
 
 setInterval(deleteInativeUsers, 15000);
+
+app.delete('/messages/:id', async (req, res) => {
+    try {
+        const message = await messages.findOne({ _id: ObjectId(req.params.id) });
+        if (!message) {
+            res.status(404);
+            return;
+        }
+        if (message.from !== req.headers.user) {
+            res.status(401);
+            return;
+        }
+        await messages.deleteOne({ _id: ObjectId(req.params.id) });
+        res.status(200);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
